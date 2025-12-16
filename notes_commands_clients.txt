@@ -1,0 +1,36 @@
+echo "User-Name = john
+Acct-Status-Type = Start
+Acct-Session-Id = 12345
+NAS-IP-Address = 127.0.0.1" | radclient -x 127.0.0.1 acct testing123
+
+
+echo "User-Name = john
+Acct-Status-Type = Interim-Update
+Acct-Session-Id = 12345
+Acct-Input-Octets = 104857600
+Acct-Output-Octets = 209715200
+NAS-IP-Address = 127.0.0.1" | radclient -x 127.0.0.1 acct testing123
+
+echo "User-Name = omar
+Acct-Status-Type = Stop
+Acct-Session-Id = 12345
+Acct-Terminate-Cause = User-Request
+NAS-IP-Address = 127.0.0.1" | radclient -x 127.0.0.1 acct testing123
+
+
+echo "User-Name = omar
+Acct-Status-Type = Interim-Update
+Acct-Session-Id = 12345
+Acct-Input-Octets = 104857600
+Acct-Output-Octets = 209715200
+NAS-IP-Address = 127.0.0.1" | radclient -x 127.0.0.1 acct testing123
+
+
+check after setting data 
+echo "User-Name = omar
+User-Password = password
+NAS-IP-Address = 127.0.0.1" | radclient -x 127.0.0.1 auth testing123
+
+echo "User-Name = ahmad
+User-Password = password
+NAS-IP-Address = 127.0.0.1" | radclient -x 127.0.0.1 auth testing123
