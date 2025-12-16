@@ -26,6 +26,7 @@ RUN apt-get update \
   && apt-get install --yes --no-install-recommends \
   ca-certificates \
   apt-utils \
+  inotify-tools \
   freeradius-utils \
   tzdata \
   apache2 \
@@ -59,10 +60,11 @@ RUN a2dissite 000-default.conf && \
 # Create directories
 # /data should be mounted as volume to avoid recreation of database entries
 RUN mkdir /data
-ADD . /var/www/daloradius
+#ADD . /var/www/daloradius
 
 #RUN touch /var/www/html/library/daloradius.conf.php
-RUN chown -R www-data:www-data /var/www/daloradius
+#RUN chown -R www-data:www-data /var/www/daloradius
+RUN mkdir -p /var/www/daloradius && chown -R www-data:www-data /var/www/daloradius
 
 # Remove the original sample web folder
 RUN rm -rf /var/www/html
@@ -71,8 +73,11 @@ RUN rm -rf /var/www/html
 RUN touch /tmp/daloradius.log && chown -R www-data:www-data /tmp/daloradius.log
 RUN mkdir -p /var/log/apache2/daloradius && chown -R www-data:www-data /var/log/apache2/daloradius
 RUN echo "Mutex posixsem" >> /etc/apache2/apache2.conf
-RUN ln -s /var/www/daloradius/app/common/static /var/www/daloradius/app/operators/static
-RUN ln -s /var/www/daloradius/app/common/static /var/www/daloradius/app/users/static
+RUN rm -rf /var/www/daloradius/app/operators/static && \
+    ln -s /var/www/daloradius/app/common/static /var/www/daloradius/app/operators/static
+
+RUN rm -rf /var/www/daloradius/app/users/static && \
+    ln -s /var/www/daloradius/app/common/static /var/www/daloradius/app/users/static
 
 ## Expose Web port for daloRADIUS
 EXPOSE 80
