@@ -73,11 +73,12 @@ RUN rm -rf /var/www/html
 RUN touch /tmp/daloradius.log && chown -R www-data:www-data /tmp/daloradius.log
 RUN mkdir -p /var/log/apache2/daloradius && chown -R www-data:www-data /var/log/apache2/daloradius
 RUN echo "Mutex posixsem" >> /etc/apache2/apache2.conf
-RUN rm -rf /var/www/daloradius/app/operators/static && \
-    ln -s /var/www/daloradius/app/common/static /var/www/daloradius/app/operators/static
+#RUN rm -rf /var/www/daloradius/app/operators/static && \
+#   ln -s /var/www/daloradius/app/common/static /var/www/daloradius/app/operators/static
 
-RUN rm -rf /var/www/daloradius/app/users/static && \
-    ln -s /var/www/daloradius/app/common/static /var/www/daloradius/app/users/static
+#RUN rm -rf /var/www/daloradius/app/users/static && \
+#    ln -s /var/www/daloradius/app/common/static /var/www/daloradius/app/users/static
+
 
 ## Expose Web port for daloRADIUS
 EXPOSE 80

@@ -80,7 +80,10 @@ services:
     volumes:
       - ./data/daloradius:/data
       - radius_logs:/var/log/freeradius
-      - ./app:/var/www/html/app
+      - ./app:/var/www/daloradius/app
+      - ./init.sh:/var/www/daloradius/init.sh
+      
+      
 
 volumes:
   radius_logs:
