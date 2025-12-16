@@ -52,6 +52,8 @@
     $planBandwidthUp = (array_key_exists('planBandwidthUp', $_POST) && !empty(trim($_POST['planBandwidthUp']))) ? trim($_POST['planBandwidthUp']) : "";
     $planBandwidthDown = (array_key_exists('planBandwidthDown', $_POST) && !empty(trim($_POST['planBandwidthDown']))) ? trim($_POST['planBandwidthDown']) : "";
     $planTrafficTotal = (array_key_exists('planTrafficTotal', $_POST) && !empty(trim($_POST['planTrafficTotal']))) ? trim($_POST['planTrafficTotal']) : "";
+$planQuotaMB = (array_key_exists('planQuotaMB', $_POST) && !empty(trim($_POST['planQuotaMB'])))  ? trim($_POST['planQuotaMB']) : "";
+
     $planTrafficDown = (array_key_exists('planTrafficDown', $_POST) && !empty(trim($_POST['planTrafficDown']))) ? trim($_POST['planTrafficDown']) : "";
     $planTrafficUp = (array_key_exists('planTrafficUp', $_POST) && !empty(trim($_POST['planTrafficUp']))) ? trim($_POST['planTrafficUp']) : "";
     $planTrafficRefillCost = (array_key_exists('planTrafficRefillCost', $_POST) && !empty(trim($_POST['planTrafficRefillCost']))) ? trim($_POST['planTrafficRefillCost']) : "";
@@ -111,17 +113,21 @@
                     
                     $sql = sprintf("INSERT INTO %s (id, planName, planId, planType, planTimeBank, planTimeType,
                                                     planTimeRefillCost, planBandwidthUp, planBandwidthDown, planTrafficTotal,
+                                                    planQuotaMB,
                                                     planTrafficUp, planTrafficDown, planTrafficRefillCost, planRecurring,
                                                     planRecurringPeriod, planRecurringBillingSchedule, planCost,
                                                     planSetupCost, planTax, planCurrency, planGroup, planActive,
                                                     creationdate, creationby, updatedate, updateby)
-                                            VALUES (0, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+                                            VALUES (0, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
                                                     '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NULL, NULL)",
                                    $configValues['CONFIG_DB_TBL_DALOBILLINGPLANS'], $dbSocket->escapeSimple($planName),
                                    $dbSocket->escapeSimple($planId), $dbSocket->escapeSimple($planType),
                                    $dbSocket->escapeSimple($planTimeBank), $dbSocket->escapeSimple($planTimeType),
                                    $dbSocket->escapeSimple($planTimeRefillCost), $dbSocket->escapeSimple($planBandwidthUp),
                                    $dbSocket->escapeSimple($planBandwidthDown), $dbSocket->escapeSimple($planTrafficTotal),
+
+                                    $dbSocket->escapeSimple($planQuotaMB),
+
                                    $dbSocket->escapeSimple($planTrafficUp), $dbSocket->escapeSimple($planTrafficDown),
                                    $dbSocket->escapeSimple($planTrafficRefillCost), $dbSocket->escapeSimple($planRecurring),
                                    $dbSocket->escapeSimple($planRecurringPeriod), $dbSocket->escapeSimple($planRecurringBillingSchedule),
@@ -330,6 +336,14 @@
                                     'tooltipText' => t('Tooltip','planTrafficTotalTooltip'),
                                  );
                                  
+       $input_descriptors2[] = array(
+        'name' => 'planQuotaMB',
+            'type' => 'text',
+       'caption' => 'Quota (MB)',
+     'value' => $planQuotaMB,
+        'tooltipText' => 'Maximum total data usage in MB'
+    );
+                          
         $input_descriptors2[] = array(
                                     'name' => 'planTrafficUp',
                                     'type' => 'text',

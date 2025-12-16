@@ -474,7 +474,7 @@ function update_user_billing_info($dbSocket, $username, $params) {
                             "creditcardname", "creditcardnumber", "creditcardverification", "creditcardtype",
                             "creditcardexp", "notes", "changeuserbillinfo", "lead", "coupon", "ordertaker", "billstatus",
                             "lastbill", "nextbill", "nextinvoicedue", "billdue", "postalinvoice", "faxinvoice",
-                            "emailinvoice", "batch_id", "creationdate", "creationby", "updatedate", "updateby"
+                            "emailinvoice", "batch_id", "creationdate", "creationby", "updatedate", "updateby","planName"
                           );
 
     $skipFields = array( "id", "username" );
@@ -519,7 +519,7 @@ function add_user_info($dbSocket, $username, $params) {
 
 function add_user_billing_info($dbSocket, $username, $params) {
     $allowedFields = array(
-                            "id", "username", "planName", "hotspot_id", "hotspotlocation", "contactperson", "company",
+                           "planName", "id", "username", "planName", "hotspot_id", "hotspotlocation", "contactperson", "company",
                             "email", "phone", "address", "city", "state", "country", "zip", "paymentmethod", "cash",
                             "creditcardname", "creditcardnumber", "creditcardverification", "creditcardtype",
                             "creditcardexp", "notes", "changeuserbillinfo", "lead", "coupon", "ordertaker", "billstatus",
