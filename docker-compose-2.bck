@@ -1,0 +1,121 @@
+version: "3.2"
+
+services:
+
+  radius-mysql:
+    image: mariadb:10
+    container_name: radius-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=radius
+      - MYSQL_USER=radius
+      - MYSQL_PASSWORD=radiusdbpw
+      - MYSQL_ROOT_PASSWORD=radiusrootdbpw
+    volumes:
+      - "./data/mysql:/var/lib/mysql"
+
+  radius:
+    container_name: radius
+    build:
+      context: .
+      dockerfile: Dockerfile-freeradius
+    restart: unless-stopped
+    depends_on: 
+      - radius-mysql
+    ports:
+      - '1812:1812/udp'
+      - '1813:1813/udp'
+    environment:
+      - MYSQL_HOST=radius-mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=radius
+      - MYSQL_USER=radius
+      - MYSQL_PASSWORD=radiusdbpw
+      # Optional settings
+      - DEFAULT_CLIENT_SECRET=testing123
+    volumes:
+      - ./data/freeradius:/data
+      - radius_logs:/var/log/freeradius
+    # Uncomment below to enable debug logging.
+    #command: -X
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: radius-phpmyadmin2
+    restart: unless-stopped
+    depends_on:
+      - radius-mysql
+    ports:
+      - "9200:80"
+    environment:
+      PMA_HOST: radius-mysql
+      PMA_PORT: 3306
+      PMA_USER: radius
+      PMA_PASSWORD: radiusdbpw
+      MYSQL_ROOT_PASSWORD: radiusrootdbpw
+
+  radius-web:
+    build: .
+    container_name: radius-web
+    restart: unless-stopped
+    depends_on:
+      - radius
+      - radius-mysql
+    ports:
+      - '8081:80'
+      - '8000:8000'
+    environment:
+      - MYSQL_HOST=radius-mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=radius 
+      
+    volumes:
+      - ./data/daloradius:/data
+      - radius_logs:/var/log/freeradius
+      - ./app:/var/www/daloradius/app
+      - ./init.sh:/var/www/daloradius/init.sh
+      
+  laravel-app:
+    build:
+      context: .
+      dockerfile: Dockerfile-laravel
+    container_name: laravel-app
+    restart: unless-stopped
+    depends_on:
+      - radius-mysql
+    ports:
+      - '8082:80'
+    volumes:
+      - /var/www/html/dev:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=mysql
+      - DB_HOST=radius-mysql
+      - DB_PORT=3306
+      - DB_DATABASE=radius
+      - DB_USERNAME=radius
+      - DB_PASSWORD=radiusdbpw
+
+  nginx:
+    image: nginx:alpine
+    container_name: laravel-nginx
+    restart: unless-stopped
+    depends_on:
+      - laravel-app
+    ports:
+      - '8001:80'
+    volumes:
+      - /var/www/html/dev:/var/www/html 
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    environment:      
+      - MYSQL_USER=radius
+      - MYSQL_PASSWORD=radiusdbpw
+      - DEFAULT_CLIENT_SECRET=testing123
+      - DEFAULT_FREERADIUS_SERVER=radius
+      - MAIL_SMTPADDR=127.0.0.1
+      - MAIL_PORT=25
+      - MAIL_FROM=root@daloradius.xdsl.by
+      - MAIL_AUTH=
+
+volumes:
+  radius_logs:

@@ -1,18 +1,23 @@
-version: "3"
+version: "3.8"
 
 services:
-
   radius-mysql:
-    image: mariadb:10
+    image: mariadb:10.11
     container_name: radius-mysql
     restart: unless-stopped
     environment:
-      - MYSQL_DATABASE=radius
-      - MYSQL_USER=radius
-      - MYSQL_PASSWORD=radiusdbpw
-      - MYSQL_ROOT_PASSWORD=radiusrootdbpw
+      MYSQL_DATABASE: radius
+      MYSQL_USER: radius
+      MYSQL_PASSWORD: radiusdbpw
+      MYSQL_ROOT_PASSWORD: radiusrootdbpw
     volumes:
       - "./data/mysql:/var/lib/mysql"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
   radius:
     container_name: radius
@@ -20,30 +25,32 @@ services:
       context: .
       dockerfile: Dockerfile-freeradius
     restart: unless-stopped
-    depends_on: 
-      - radius-mysql
+    depends_on:
+      radius-mysql:
+        condition: service_healthy
     ports:
       - '1812:1812/udp'
       - '1813:1813/udp'
     environment:
-      - MYSQL_HOST=radius-mysql
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=radius
-      - MYSQL_USER=radius
-      - MYSQL_PASSWORD=radiusdbpw
-      # Optional settings
-      - DEFAULT_CLIENT_SECRET=testing123
+      MYSQL_HOST: radius-mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: radius
+      MYSQL_USER: radius
+      MYSQL_PASSWORD: radiusdbpw
+      DEFAULT_CLIENT_SECRET: testing123
     volumes:
       - ./data/freeradius:/data
       - radius_logs:/var/log/freeradius
-    # Uncomment below to enable debug logging.
-    #command: -X
+    networks:
+      - app-network
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
-    container_name: radius-phpmyadmin
+    container_name: radius-phpmyadmin2
     restart: unless-stopped
     depends_on:
-      - radius-mysql
+      radius-mysql:
+        condition: service_healthy
     ports:
       - "9200:80"
     environment:
@@ -52,38 +59,60 @@ services:
       PMA_USER: radius
       PMA_PASSWORD: radiusdbpw
       MYSQL_ROOT_PASSWORD: radiusrootdbpw
+    networks:
+      - app-network
+
+  laravel-app:
+    build:
+      context: .
+      dockerfile: Dockerfile-laravel
+    container_name: laravel-app
+    restart: unless-stopped
+    depends_on:
+      radius-mysql:
+        condition: service_healthy
+    ports:
+      - '8000:80'
+    volumes:
+      - /var/www/html/dev:/var/www/html
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      DB_CONNECTION: mysql
+      DB_HOST: radius-mysql
+      DB_PORT: 3306
+      DB_DATABASE: radius
+      DB_USERNAME: radius
+      DB_PASSWORD: radiusdbpw
+    networks:
+      - app-network
 
   radius-web:
     build: .
     container_name: radius-web
     restart: unless-stopped
     depends_on:
-      - radius
-      - radius-mysql
+      radius-mysql:
+        condition: service_healthy
     ports:
       - '8081:80'
-      - '8000:8000'
     environment:
-      - MYSQL_HOST=radius-mysql
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=radius
-      - MYSQL_USER=radius
-      - MYSQL_PASSWORD=radiusdbpw
-      # Optional Settings:
-      - DEFAULT_CLIENT_SECRET=testing123
-      - DEFAULT_FREERADIUS_SERVER=radius
-      - MAIL_SMTPADDR=127.0.0.1
-      - MAIL_PORT=25
-      - MAIL_FROM=root@daloradius.xdsl.by
-      - MAIL_AUTH=
-
+      MYSQL_HOST: radius-mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: radius
+      MYSQL_USER: radius
+      MYSQL_PASSWORD: radiusdbpw
     volumes:
       - ./data/daloradius:/data
       - radius_logs:/var/log/freeradius
       - ./app:/var/www/daloradius/app
       - ./init.sh:/var/www/daloradius/init.sh
-      
-      
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   radius_logs:
